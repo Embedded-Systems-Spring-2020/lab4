@@ -51,43 +51,67 @@ Configure and enable the sensor module for pic24 hardware.
 \param e_senVRef specifies sensor voltage reference
 \hideinitializer
  */
-void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVRef)
-{
 
+ 
+void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVRef){
+	if (esos_IsUserFlagClear(__ESOS_SYS_ADC_IS_BUSY){
+		esos_SetUserFlag(__ESOS_SYS_ADC_IS_BUSY);
+		AD1CON1 = ADC_MODULE_OFF;  //disables ADC while progranning
+		AD1CON1 = ADC_CLK_AUTO | ADC_AUTO_SAMPLING_OFF;
+		AD1CON1bits.AD12B = 0;  // sets ADC for 10 bit sampling
+		if (e_senCh == ESOS_SENSOR_CH02){
+			CONFIG_RB2_AS_ANALOG(); //for potentiometer analog input
+			
+			AD1CHS0 = ADC_CH0_NEG_SAMPLEA_VREFN | e_senCh;
+		}else if (e_senCh == ESOS_SENSOR_CH03){
+			CONFIG_RB0_AS_ANALOG();  //for 3V input on Vref+
+			CONFIG_RB3_AS_ANALOG(); //for thermometer input
+			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
+			AD1CHS0 = ADC_CH0_NEG_SAMPLEA_VREFN | e_senCh;
+		}
+		if (e_senVRef == ESOS_SENSOR_VREF_3V3){
+			AD1CON2 = ADC_VREF_AVDD_AVSS; //uses VDD and VSS
+		}else {
+			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
+		}
+		AD1CON3 = ADC_CONV_CLK_INTERNAL_RC | ADC_SAMPLE_TIME_31;
+		AD1CON1 = ADC_MODULE_ON;
+	}
 }
 
 /**
 Determine truth of: the sensor is currently converting
 \hideinitializer
  */
-BOOL esos_sensor_is_converting_hw (void)
-{
-
+BOOL esos_sensor_is_converting_hw (void){
+	return(!AD1CON1bits.DONE);
 }
 
 /**
 Initiate a conversion for a configured sensor
 \hideinitializer
  */
-void esos_sensor_initiate_conversion_hw (void)
-{
-
+void esos_sensor_initiate_conversion_hw (void){
+	SET_SAMP_BIT_ADC1();
 }
 
 /**
 Receive the value from a conversion that has already been initiated
 \hideinitializer
  */
-uint16_t esos_sensor_getvalue_u16_hw (void)
-{
-
+uint16_t esos_sensor_getvalue_u16_hw (void){
+	uint16_t u16_sensor_value;
+	ESOS_TASK_WAIT_UNTIL(IS_CONVERSION_COMPLETE_ADC1());
+	u16_sensor_value = ADCBUF0;
+	AD1CON1bits.DONE = 0;
+	return u16_sensor_value;
 }
 
 /**
 Release any pending conversions for the sensor
 \hideinitializer
  */
-void esos_sensor_release_hw (void)
-{
-
+void esos_sensor_release_hw (void){
+	esos_ClearUserFlag(__ESOS_SYS_ADC_IS_BUSY);
+	AD1CON1 = ADC_MODULE_ON;
 }
