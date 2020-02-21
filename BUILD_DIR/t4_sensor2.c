@@ -130,8 +130,7 @@ ESOS_USER_TASK(prettyMenu) {
                 :   proc_mode == MEDIAN && num_samples == SAMPLES64 ? ESOS_SENSOR_MEDIAN16
                 :   0x00;
         }
-        
+        ESOS_TASK_YIELD();
     }
-
-
+    ESOS_TASK_END();
 }
