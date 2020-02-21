@@ -6,6 +6,7 @@
 #include "pic24_ports_config.h"
 #include <esos.h>
 #include "esos_pic24.h"
+#include <esos_task.h>
 #include "esos_comm.h"
 #include "esos_f14ui.h"
 #include "esos_sensor.h"
@@ -133,10 +134,10 @@ ESOS_CHILD_TASK(menu) {
 }
 
 ESOS_USER_TASK(placeholderTask) {
-    ESOS_THREAD_HANDLE th_child;
+    ESOS_TASK_HANDLE th_child;
 
     ESOS_TASK_BEGIN();
-    ESOS_SPAWN_AND_WAIT(th_child, menu);
+    ESOS_TASK_SPAWN_AND_WAIT(th_child, menu);
     ESOS_TASK_END();
     
 }
