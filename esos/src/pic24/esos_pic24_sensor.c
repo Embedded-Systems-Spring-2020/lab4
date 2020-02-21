@@ -62,18 +62,17 @@ void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVR
 		if (e_senCh == ESOS_SENSOR_CH02){
 			CONFIG_RB2_AS_ANALOG(); //for potentiometer analog input
 			
-			AD1CHS0 = ADC_CH0_NEG_SAMPLEA_VREFN | e_senCh;
 		}else if (e_senCh == ESOS_SENSOR_CH03){
 			CONFIG_RB0_AS_ANALOG();  //for 3V input on Vref+
 			CONFIG_RB3_AS_ANALOG(); //for thermometer input
 			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
-			AD1CHS0 = ADC_CH0_NEG_SAMPLEA_VREFN | e_senCh;
 		}
 		if (e_senVRef == ESOS_SENSOR_VREF_3V3){
 			AD1CON2 = ADC_VREF_AVDD_AVSS; //uses VDD and VSS
 		}else {
 			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
 		}
+		AD1CHS0 = ADC_CH0_NEG_SAMPLEA_VREFN | e_senCh;
 		// Use internal clock, set sample time to 31 (bitmask logic)
 		AD1CON3 = ADC_CONV_CLK_INTERNAL_RC | ADC_SAMPLE_TIME_31;
 		AD1CON1 = ADC_MODULE_ON;
@@ -114,5 +113,5 @@ Release any pending conversions for the sensor
 void esos_sensor_release_hw (void){
 	esos_ClearUserFlag(__ESOS_SYS_ADC_IS_BUSY);
 	// Mask to set ACD1COn1bits.ADON to 0 (turns off)
-	AD1CON1 = ADC_MODULE_ON;		
+	AD1CON1 = ADC_MODULE_OFF;		
 }
