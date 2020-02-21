@@ -21,7 +21,11 @@
 #define LED2  (_LATB14)
 
 // LED3 - Green LED (Bottom, connected to RB15)
-#define CONFIG_LED3() CONFIG_RB15_AS_DIG_OUTPUT()
+#define CONFIG_LED3() do {\
+  CONFIG_RB15_AS_DIG_OUTPUT();  \
+  ENABLE_RB15_OPENDRAIN();  \
+ } while(0)
+
 #define LED3  (_LATB15)
 
 // SW1 - Connected to RB13
