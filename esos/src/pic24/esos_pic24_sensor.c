@@ -100,9 +100,11 @@ Receive the value from a conversion that has already been initiated
 \hideinitializer
  */
 uint16_t esos_sensor_getvalue_u16_hw (void){
+	uint16_t u16_sensor_value;
 	ESOS_TASK_WAIT_UNTIL(IS_CONVERSION_COMPLETE_ADC1());
-	data = ADCBUF0;
+	u16_sensor_value = ADCBUF0;
 	AD1CON1bits.DONE = 0;
+	return u16_sensor_value;
 }
 
 /**
@@ -111,4 +113,5 @@ Release any pending conversions for the sensor
  */
 void esos_sensor_release_hw (void){
 	esos_ClearUserFlag(__ESOS_SYS_ADC_IS_BUSY);
+	AD1CON1bits.ADON = 0;
 }
