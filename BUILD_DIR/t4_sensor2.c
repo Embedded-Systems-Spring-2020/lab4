@@ -27,7 +27,7 @@
 // defined in "esos_sensor.h"
 static esos_sensor_process_t sensor_processing_mode;
 
-ESOS_USER_TASK(prettyMenu) {
+ESOS_CHILD_TASK(menu) {
 
     static char proc_mode_buffer[8];    // buffer for holding the desired processing mode 
     static char num_samples_buffer[8];  // buffer for holding the desired number of samples
@@ -132,7 +132,16 @@ ESOS_USER_TASK(prettyMenu) {
     ESOS_TASK_END();
 }
 
+ESOS_USER_TASK(placeholderTask) {
+    ESOS_THREAD_HANDLE th_child;
+
+    ESOS_TASK_BEGIN();
+    ESOS_SPAWN_AND_WAIT(th_child, menu);
+    ESOS_TASK_END();
+    
+}
+
 void user_init(void){
     config_esos_uiF14();
-    esos_RegisterTask(prettyMenu);
+    esos_RegisterTask(placeholderTask);
 }
