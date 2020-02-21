@@ -54,7 +54,7 @@ Configure and enable the sensor module for pic24 hardware.
 
  
 void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVRef){
-	if (esos_IsUserFlagClear(__ESOS_SYS_ADC_IS_BUSY){
+	if (esos_IsUserFlagClear(__ESOS_SYS_ADC_IS_BUSY)){
 		esos_SetUserFlag(__ESOS_SYS_ADC_IS_BUSY);
 		AD1CON1 = ADC_MODULE_OFF;  //disables ADC while progranning
 		AD1CON1 = ADC_CLK_AUTO | ADC_AUTO_SAMPLING_OFF;
@@ -101,8 +101,7 @@ Receive the value from a conversion that has already been initiated
  */
 uint16_t esos_sensor_getvalue_u16_hw (void){
 	uint16_t u16_sensor_value;
-	ESOS_TASK_WAIT_UNTIL(IS_CONVERSION_COMPLETE_ADC1());
-	u16_sensor_value = ADCBUF0;
+	u16_sensor_value = ADC1BUF0;
 	AD1CON1bits.DONE = 0;
 	return u16_sensor_value;
 }

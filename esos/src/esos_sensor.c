@@ -27,9 +27,10 @@
  *
  */
 
-#include "esos_sensor.h"
+#include <esos_sensor.h>
 #include <esos.h>
 #include <stdlib.h>
+#include <esos_pic24_sensor.h>
 
 /**
 * Waits until a sensor is available.
@@ -63,7 +64,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_QUICK_READ, uint16_t* pu16_data)
 {
 	ESOS_TASK_BEGIN();
 	
-    esos_sensor_initiate_hw();
+    esos_sensor_initiate_conversion_hw();
     ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
     *pu16_data = esos_sensor_getvalue_u16_hw();
 
@@ -150,7 +151,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//2 Samples
 	if((e_senProcess & 0b00001111) == 1){
 		while(arrayCount < 2){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -158,7 +159,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//4 Samples
 	else if((e_senProcess & 0b00001111) == 2){
 		while(arrayCount < 4){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -166,7 +167,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//8 Samples
 	else if((e_senProcess & 0b00001111) == 3){
 		while(arrayCount < 8){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -174,7 +175,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//16 Samples
 	else if((e_senProcess & 0b00001111) == 4){
 		while(arrayCount < 16){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -182,7 +183,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//32 Samples
 	else if((e_senProcess & 0b00001111) == 5){
 		while(arrayCount < 32){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -190,7 +191,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 	//64 Samples
 	else if((e_senProcess & 0b00001111) == 6){
 		while(arrayCount < 64){
-            esos_sensor_initiate_hw();
+            esos_sensor_initiate_conversion_hw();
             ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 			au16_dataArr[arrayCount++] = esos_sensor_getvalue_u16_hw();
 		}
@@ -204,7 +205,7 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 
 	//Do Nothing
 	if(e_senProcess == ESOS_SENSOR_ONE_SHOT){
-        esos_sensor_initiate_hw();
+        esos_sensor_initiate_conversion_hw();
         ESOS_TASK_WAIT_WHILE(esos_sensor_is_converting_hw());
 		*pu16_data = esos_sensor_getvalue_u16_hw();
 	}
@@ -365,14 +366,14 @@ ESOS_CHILD_TASK(_WAIT_SENSOR_READ, uint16_t* pu16_data, uint8_t e_senProcess, es
 			: vRef == ESOS_SENSOR_VREF_4V096 ? 40960
 			: vRef == ESOS_SENSOR_VREF_5V0 ?   50000
 			: 0;
-		const uint32_t u32_divDeciMillivolts = (uint32_t)(*u16_data) * u32_maxDeciMilliVolts;
+		const uint32_t u32_divDeciMillivolts = (uint32_t)(*pu16_data) * u32_maxDeciMilliVolts;
 		const uint32_t u32_DeciMillivolts = u32_divDeciMillivolts / 4096;
 		*pu16_data = (uint16_t)u32_DeciMillivolts;
 	}
 
 	//Export as Percent
 	else if(FMT_CONSTANT & ESOS_SENSOR_FORMAT_PERCENT) {
-		*pu16_data = (uint32_t)(*u16_data) * 100 / 4096;
+		*pu16_data = (uint32_t)(*pu16_data) * 100 / 4096;
 	}
 
 
