@@ -4,16 +4,11 @@
 #include "pic24_all.h"
 #include <string.h>
 #include "pic24_ports_config.h"
-
 #include <esos.h>
 #include "esos_pic24.h"
 #include "esos_comm.h"
 #include "esos_f14ui.h"
-
 #include "esos_sensor.h"
-
-// defined in "esos_sensor.h"
-static esos_sensor_process_t sensor_processing_mode;
 
 #define ONESHOT '1'
 #define AVG '2'
@@ -29,6 +24,8 @@ static esos_sensor_process_t sensor_processing_mode;
 #define SAMPLES_ONESHOT '7'
 
 
+// defined in "esos_sensor.h"
+static esos_sensor_process_t sensor_processing_mode;
 
 ESOS_USER_TASK(prettyMenu) {
 
@@ -133,4 +130,9 @@ ESOS_USER_TASK(prettyMenu) {
         ESOS_TASK_YIELD();
     }
     ESOS_TASK_END();
+}
+
+void user_init(void){
+    config_esos_uiF14();
+    esos_RegisterTask(prettyMenu);
 }
