@@ -13,22 +13,24 @@
 #define LOOP_DELAY 1000
 
 char buffer[30];
-BOOL SW1_latch = FALSE;
-BOOL SW2_latch = FALSE;
-
+BOOL b_keepLooping = FALSE;
 ESOS_USER_TASK(loop) {
     static uint16_t u16_data;
 
-    ESOS_TASK_BEGIN();
+    ESOS_TASK_BEGIN();{
+      for (;;) {
 
-    for (;;) {
-
-        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed());
-        
-        //Grab the potentiometer
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());
+		if (esos_uiF14_isSW2Pressed()){
+			b_keepLooping = TRUE;
+		}
+		else {b_keepLooping = FALSE;
+		}
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released() && esos_uiF14_isSW2Released());
+        do{                    //claim the ADC
         ESOS_TASK_WAIT_ON_AVAILABLE_SENSOR(ESOS_SENSOR_CH02, ESOS_SENSOR_VREF_3V3);
 
-        //Now we have exclusive use of the pot, grab data
+        //Now we have exclusive use, grab data
         ESOS_TASK_WAIT_SENSOR_QUICK_READ(u16_data);
 
         //Grab the output
@@ -36,11 +38,21 @@ ESOS_USER_TASK(loop) {
         sprintf(buffer, "%d\n", u16_data);
         ESOS_TASK_WAIT_ON_SEND_STRING(buffer);
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
-
+		ESOS_TASK_WAIT_TICKS(LOOP_DELAY);
+		if (esos_uiF14_isSW1Pressed()){
+			ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released());
+			break;
+		}
+		if (esos_uiF14_isSW2Pressed()){
+			ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW2Released());
+			break;
+		}
+		}while(b_keepLooping);
+		b_keepLooping = FALSE;
         //Release the potentiometer
         ESOS_SENSOR_CLOSE();        
 
-        ESOS_TASK_WAIT_TICKS(LOOP_DELAY);
+      }  
     }
 
     ESOS_TASK_END();
