@@ -32,6 +32,8 @@ ESOS_CHILD_TASK(menu) {
 
     static char proc_mode_buffer[8];    // buffer for holding the desired processing mode 
     static char num_samples_buffer[8];  // buffer for holding the desired number of samples
+    char proc_mode;
+    char num_samples;
 
     ESOS_TASK_BEGIN();
     for (;;) {
@@ -91,8 +93,8 @@ ESOS_CHILD_TASK(menu) {
 
             // we only need the first character of each buffer, so doing this now
             // will save me a lot of typing
-            char proc_mode = proc_mode_buffer[0];
-            char num_samples = num_samples_buffer[0];
+            proc_mode = proc_mode_buffer[0];
+            num_samples = num_samples_buffer[0];
 
             // assign the appropriate sensor_processing_mode based on user input
             // in the order defined in esos_sensor.h
