@@ -1,4 +1,3 @@
-
 #include <esos.h>
 #include "esos_pic24.h"
 #include "esos_pic24_rs232.h"
@@ -9,9 +8,8 @@
 #include <stdlib.h>
 #include "revF14.h"
 
+ESOS_USER_TASK()
+
 void user_init(void){
-    //Your code goes here.
-    //Good luck!
+    
 }
-
-
