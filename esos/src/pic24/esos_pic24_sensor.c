@@ -74,6 +74,7 @@ void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVR
 		}else {
 			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
 		}
+		// Use internal clock, set sample time to 31 (bitmask logic)
 		AD1CON3 = ADC_CONV_CLK_INTERNAL_RC | ADC_SAMPLE_TIME_31;
 		AD1CON1 = ADC_MODULE_ON;
 	}
@@ -92,7 +93,7 @@ Initiate a conversion for a configured sensor
 \hideinitializer
  */
 void esos_sensor_initiate_conversion_hw (void){
-	SET_SAMP_BIT_ADC1();
+	SET_SAMP_BIT_ADC1();		// applies a bitmask to AD1CON1 to start sampling
 }
 
 /**
@@ -101,8 +102,8 @@ Receive the value from a conversion that has already been initiated
  */
 uint16_t esos_sensor_getvalue_u16_hw (void){
 	uint16_t u16_sensor_value;
-	u16_sensor_value = ADC1BUF0;
-	AD1CON1bits.DONE = 0;
+	u16_sensor_value = ADC1BUF0;		// get value from ADC out of buffer
+	AD1CON1bits.DONE = 0;				// signal that we are done
 	return u16_sensor_value;
 }
 
@@ -112,5 +113,6 @@ Release any pending conversions for the sensor
  */
 void esos_sensor_release_hw (void){
 	esos_ClearUserFlag(__ESOS_SYS_ADC_IS_BUSY);
-	AD1CON1 = ADC_MODULE_ON;
+	// Mask to set ACD1COn1bits.ADON to 0 (turns off)
+	AD1CON1 = ADC_MODULE_ON;		
 }
