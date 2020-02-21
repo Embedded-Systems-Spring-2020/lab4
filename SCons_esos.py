@@ -54,7 +54,8 @@ for sourceFile in Glob('BUILD_DIR/*.c', True, True, True):
         'esos/src/pic24/esos_pic24_tick.c', 
         'esos/src/esos_f14ui.c',
         'esos/src/pic24/esos_pic24_sensor.c',
-        'esos/src/esos_sensor.c'])
+        'esos/src/esos_sensor.c'
+        ])
     linker_side_effect(env, p)
     # Convert it to a .hex
     bin2hex(sourceFile, env, 'esos')
