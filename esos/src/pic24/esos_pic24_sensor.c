@@ -56,7 +56,8 @@ Configure and enable the sensor module for pic24 hardware.
 void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVRef){
 	if (esos_IsUserFlagClear(__ESOS_SYS_ADC_IS_BUSY)){
 		esos_SetUserFlag(__ESOS_SYS_ADC_IS_BUSY);
-		AD1CON1 = ADC_MODULE_OFF;  //disables ADC while progranning
+		// AD1CON1 = ADC_MODULE_OFF;  //disables ADC while progranning
+		AD1CON1bits.ADON = 0;
 		AD1CON1 = ADC_CLK_AUTO | ADC_AUTO_SAMPLING_OFF;
 		AD1CON1bits.AD12B = 0;  // sets ADC for 10 bit sampling
 		if (e_senCh == ESOS_SENSOR_CH02){
@@ -75,7 +76,8 @@ void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVR
 			AD1CON2 = ADC_VREF_EXT_AVSS; //uses Vref+ on pin 0 instead of VDD
 		}
 		AD1CON3 = ADC_CONV_CLK_INTERNAL_RC | ADC_SAMPLE_TIME_31;
-		AD1CON1 = ADC_MODULE_ON;
+		// AD1CON1 = ADC_MODULE_ON;
+		AD1CON1bits.ADON = 1;
 	}
 }
 
@@ -112,5 +114,6 @@ Release any pending conversions for the sensor
  */
 void esos_sensor_release_hw (void){
 	esos_ClearUserFlag(__ESOS_SYS_ADC_IS_BUSY);
-	AD1CON1 = ADC_MODULE_ON;
+	// AD1CON1 = ADC_MODULE_ON;
+	AD1CON1bits.ADON = 0;
 }

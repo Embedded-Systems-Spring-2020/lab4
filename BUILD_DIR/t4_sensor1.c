@@ -3,13 +3,54 @@
 #include "esos_pic24_rs232.h"
 #include <p33EP512GP806.h>
 #include <pic24_all.h>
+#include <esos_f14ui.h>
+
+#include <esos_sensor.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "revF14.h"
 
-ESOS_USER_TASK()
+#define LOOP_DELAY 1000
+
+char buffer[30];
+BOOL SW1_latch = FALSE;
+BOOL SW2_latch = FALSE;
+
+ESOS_USER_TASK(loop) {
+    static uint16_t u16_data;
+
+    ESOS_TASK_BEGIN();
+
+    for (;;) {
+
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed());
+        
+        //Grab the potentiometer
+        ESOS_TASK_WAIT_ON_AVAILABLE_SENSOR(ESOS_SENSOR_CH02, ESOS_SENSOR_VREF_3V3);
+
+        //Now we have exclusive use of the pot, grab data
+        ESOS_TASK_WAIT_SENSOR_QUICK_READ(u16_data);
+
+        //Grab the output
+        ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
+        sprintf(buffer, "%d\n", u16_data);
+        ESOS_TASK_WAIT_ON_SEND_STRING(buffer);
+        ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
+
+        //Release the potentiometer
+        ESOS_SENSOR_CLOSE();        
+
+        ESOS_TASK_WAIT_TICKS(LOOP_DELAY);
+    }
+
+    ESOS_TASK_END();
+}
 
 void user_init(void){
-    
+    config_esos_uiF14();
+
+    // Config heartbeat
+    esos_uiF14_flashLED3(500);
+
+    esos_RegisterTask(loop);
 }
