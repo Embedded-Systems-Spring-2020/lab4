@@ -29,7 +29,7 @@
 
 #ifndef ESOS_PIC24_SENSOR_H
 #define ESOS_PIC24_SENSOR_H
-
+#define __ESOS_SYS_ADC_IS_BUSY ESOS_USER_FLAG_0  //to signal other users of the ADC that it's busy
 /**
  * \addtogroup ESOS_Task_Sensor_Service
  * @{
