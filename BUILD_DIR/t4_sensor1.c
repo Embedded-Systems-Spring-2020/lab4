@@ -35,20 +35,22 @@ ESOS_USER_TASK(loop) {
 
         //Grab the output
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
+		
         sprintf(buffer, "%d\n", u16_data);
         ESOS_TASK_WAIT_ON_SEND_STRING(buffer);
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
-		ESOS_TASK_WAIT_TICKS(LOOP_DELAY);
+		ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);
 		if (esos_uiF14_isSW1Pressed()){
 			ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released());
-			break;
+			b_keepLooping = FALSE;
 		}
 		if (esos_uiF14_isSW2Pressed()){
 			ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW2Released());
-			break;
+			b_keepLooping = FALSE;
 		}
+		ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);
 		}while(b_keepLooping);
-		b_keepLooping = FALSE;
+		
         //Release the potentiometer
         ESOS_SENSOR_CLOSE();        
 
