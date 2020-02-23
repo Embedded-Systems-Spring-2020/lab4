@@ -38,7 +38,7 @@ ESOS_USER_TASK(loop) {
         //wait for UART availability to send output to Bully Bootloader
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
 		
-        sprintf(buffer, "%d\n", u16_data);
+        ESOS_TASK_WAIT_ON_SEND_STRING(buffer, "%X\n", u16_data);
         ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 		ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  /*this is half of the 1 second delay between samples
