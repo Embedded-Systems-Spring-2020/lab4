@@ -132,19 +132,20 @@ ESOS_CHILD_TASK(menu) {
 
 ESOS_USER_TASK(loop) {
     static uint16_t u16_data;
-	static ESOS_TASK_HANDLE th_child; //declare storage for handle to child task 
-    ESOS_TASK_BEGIN();{
-      for (;;) {     //same as while(true)
+	static ESOS_TASK_HANDLE th_child_bar_graph; //declare storage for handle to child task
+    static ESOS_TASK_HANDLE th_child_menu
+    ESOS_TASK_BEGIN();
+    for (;;) {     //same as while(true)
 
         ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  //on either switch, start the DO loop
-		if (esos_uiF14_isSW2Pressed()){
-			b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
-		}
-		else {b_keepLooping = FALSE;   //if sw1 don't keep looping just do once
-		}
+        if (esos_uiF14_isSW2Pressed()){
+            b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
+        }
+        else {b_keepLooping = FALSE;   //if sw1 don't keep looping just do once
+        }
         ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released() && esos_uiF14_isSW2Released());  /*wait for the release so
-	   sw1 can exit the loop when pressed again. The loop is fast enough to go around and sense sw1 still pressed
-	   and begin again*/
+        sw1 can exit the loop when pressed again. The loop is fast enough to go around and sense sw1 still pressed
+        and begin again*/
         do{                    //claim the ADC, setup for CH2(potentiometer) and 3V3 for upper Vref
             ESOS_TASK_WAIT_ON_AVAILABLE_SENSOR(ESOS_SENSOR_CH02, ESOS_SENSOR_VREF_3V3);
 
@@ -156,8 +157,8 @@ ESOS_USER_TASK(loop) {
             
             ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING(u16_data); //extra zeros but acceptable
             
-            ESOS_ALLOCATE_CHILD_TASK(th_child);
-            ESOS_TASK_SPAWN_AND_WAIT(th_child, barGraph_child, u16_data);
+            ESOS_ALLOCATE_CHILD_TASK(th_child_bar_graph);
+            ESOS_TASK_SPAWN_AND_WAIT(th_child_bar_graph, barGraph_child, u16_data);
             
             ESOS_TASK_WAIT_ON_SEND_STRING("\n");
             ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
@@ -172,19 +173,18 @@ ESOS_USER_TASK(loop) {
                 ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW2Released());
                 b_keepLooping = FALSE;
             }
-
             if (esos_uiF14_isSW3Pressed()){  //sw1 will stop the sw2 initiated continous looping
                 ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW3Released());
                 b_keepLooping = FALSE;
-                ESOS_TASK_SPAWN_AND_WAIT(th_child, menu);
+                ESOS_ALLOCATE_CHILD_TASK(th_child_menu);
+                ESOS_TASK_SPAWN_AND_WAIT(th_child_menu, menu);
             }
             ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  //the other half of the loop sw2 sensor reading delay
         }while(b_keepLooping); //keep doing the DO loop if sw2 initiated it
-		
+        
         //Release the potentiometer
         ESOS_SENSOR_CLOSE();        
-      }  
-    }
+    }  
     ESOS_TASK_END();
 }
 
