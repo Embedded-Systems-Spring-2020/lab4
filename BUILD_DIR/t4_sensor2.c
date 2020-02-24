@@ -221,8 +221,8 @@ ESOS_USER_TASK(loop) {
                     ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW3Released());
                     b_keepLooping = FALSE;
                 }
-                ESOS_TASK_HANDLE th_child;
-                ESOS_TASK_SPAWN_AND_WAIT(th_child, menu);
+             //   ESOS_TASK_HANDLE th_child;
+             //   ESOS_TASK_SPAWN_AND_WAIT(th_child, menu);
 
                 ESOS_TASK_WAIT_TICKS(LOOP_DELAY / 2);
 
