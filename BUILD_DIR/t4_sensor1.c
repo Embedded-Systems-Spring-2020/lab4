@@ -4,8 +4,10 @@
 #include <p33EP512GP806.h>
 #include <pic24_all.h>
 #include <esos_f14ui.h>
-
+#include <esos_comm.h>
 #include <esos_sensor.h>
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +22,7 @@ ESOS_USER_TASK(loop) {
     ESOS_TASK_BEGIN();{
       for (;;) {     //same as while(true)
 
-        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  /on either switch, start the DO loop
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  //on either switch, start the DO loop
 		if (esos_uiF14_isSW2Pressed()){
 			b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
 		}
@@ -38,7 +40,8 @@ ESOS_USER_TASK(loop) {
         //wait for UART availability to send output to Bully Bootloader
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
 		
-        ESOS_TASK_WAIT_ON_SEND_STRING(buffer, "%X\n", u16_data);
+        ESOS_TASK_WAIT_ON_SEND_UINT32_AS_HEX_STRING(u16_data); //extra zeros but acceptable
+		ESOS_TASK_WAIT_ON_SEND_STRING("\n");
         ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 		ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  /*this is half of the 1 second delay between samples
