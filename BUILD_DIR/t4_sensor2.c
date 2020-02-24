@@ -137,11 +137,18 @@ ESOS_USER_TASK(loop) {
     ESOS_TASK_BEGIN();
     for (;;) {     //same as while(true)
 
-        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  //on either switch, start the DO loop
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed() || \
+							esos_uiF14_isSW3Pressed());  //on any switch, start the DO loop
         if (esos_uiF14_isSW2Pressed()){
             b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
         }
         else {b_keepLooping = FALSE;   //if sw1 don't keep looping just do once
+        }
+		sensor_processing_mode = ESOS_SENSOR_ONE_SHOT;
+		if (esos_uiF14_isSW3Pressed()){
+			start_menu:
+            ESOS_ALLOCATE_CHILD_TASK(th_child_menu);
+            ESOS_TASK_SPAWN_AND_WAIT(th_child_menu, menu);
         }
         ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released() && esos_uiF14_isSW2Released());  /*wait for the release so
         sw1 can exit the loop when pressed again. The loop is fast enough to go around and sense sw1 still pressed
@@ -173,11 +180,11 @@ ESOS_USER_TASK(loop) {
                 ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW2Released());
                 b_keepLooping = FALSE;
             }
-            if (esos_uiF14_isSW3Pressed()){  //sw1 will stop the sw2 initiated continous looping
+            if (esos_uiF14_isSW3Pressed()){  //sw3 will also stop the looping
                 ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW3Released());
-                //b_keepLooping = FALSE;
-                ESOS_ALLOCATE_CHILD_TASK(th_child_menu);
-                ESOS_TASK_SPAWN_AND_WAIT(th_child_menu, menu);
+                b_keepLooping = FALSE;
+				goto start_menu;
+                
             }
 			ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  //the other half of the loop sw2 sensor reading delay
         }while(b_keepLooping); //keep doing the DO loop if sw2 initiated it
