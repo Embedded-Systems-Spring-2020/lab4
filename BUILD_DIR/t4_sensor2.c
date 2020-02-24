@@ -42,7 +42,7 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
     ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
     ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING(u16_num2graph); //Bam! new 16 bit hex send 
 	ESOS_TASK_WAIT_ON_SEND_STRING("   |");     //draws a 20 '_' long line with a moving '|' 
-	u8_barGraph_value = u16_num2graph / 50;    //max output 2^10 ~= 1000; /50 gives increments of 20
+	u8_barGraph_value = u16_num2graph / 200;    //max output 2^12 ~= 4000; /200 gives increments of 20
 	for (i=0; i<u8_barGraph_value; i++){
 			ESOS_TASK_WAIT_ON_SEND_STRING("_");
 	}

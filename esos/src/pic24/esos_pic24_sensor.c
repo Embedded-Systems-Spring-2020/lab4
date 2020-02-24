@@ -58,7 +58,7 @@ void esos_sensor_config_hw (esos_sensor_ch_t e_senCh, esos_sensor_vref_t e_senVR
 		esos_SetUserFlag(__ESOS_SYS_ADC_IS_BUSY);
 		AD1CON1bits.ADON = 0; //disables ADC while progranning
 		AD1CON1 = ADC_CLK_AUTO | ADC_AUTO_SAMPLING_OFF;
-		AD1CON1bits.AD12B = 0;  // sets ADC for 10 bit sampling
+		AD1CON1bits.AD12B = 1;  // sets ADC for 10 bit sampling
 		if (e_senCh == ESOS_SENSOR_CH02){
 			CONFIG_RB2_AS_ANALOG(); //for potentiometer analog input
 			
