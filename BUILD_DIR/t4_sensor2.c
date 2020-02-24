@@ -56,7 +56,7 @@ ESOS_CHILD_TASK(menu) {
     static uint8_t num_samples = 0x00;
 
     ESOS_TASK_BEGIN();
-    for (;;) {
+    //for (;;) {
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
         // print a very pretty menu
         ESOS_TASK_WAIT_ON_SEND_STRING("\n+===========================+");
@@ -126,7 +126,7 @@ ESOS_CHILD_TASK(menu) {
             :   proc_mode == MEDIAN && num_samples == SAMPLES32 ? ESOS_SENSOR_MEDIAN32
             :   proc_mode == MEDIAN && num_samples == SAMPLES64 ? ESOS_SENSOR_MEDIAN16
             :   0x00;
-    }
+    //}
     ESOS_TASK_END();
 }
 
