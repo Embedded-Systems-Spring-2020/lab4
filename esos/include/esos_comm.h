@@ -53,6 +53,7 @@ uint8_t __esos_u8_GetLSBHexCharFromUint8(uint8_t u8_x);
 ESOS_CHILD_TASK( __esos_OutChar, uint8_t u8_c);
 ESOS_CHILD_TASK( __esos_OutUint8AsDecString, uint8_t u8_x);
 ESOS_CHILD_TASK( __esos_OutUint8AsHexString, uint8_t u8_x);
+ESOS_CHILD_TASK( __esos_OutUint16AsHexString, uint16_t u16_x);
 ESOS_CHILD_TASK( __esos_OutUint32AsHexString, uint32_t u32_x);
 ESOS_CHILD_TASK( __esos_OutCharBuffer, uint8_t* pu8_out, uint8_t u8_len);
 ESOS_CHILD_TASK( __esos_getBuffer, uint8_t* pau8_buff, uint8_t u8_size);
@@ -407,6 +408,19 @@ uint8_t __esos_unsafe_GetUint8(void);
 
 /**
 * Create, spawn and wait on a child task to put a byte (uint8) to the ESOS "out" communications buffer as a human-readable
+* decimal string.  Results will look like "253"
+*
+* \note This call will block the current task until the data is absorbed by the ESOS communications subsystem
+* \param u8_out    data to write to "out" stream
+* \sa ESOS_TASK_SPAWN_AND_WAIT
+* \hideinitializer
+*/
+#define   ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING( u16_out)         \
+            ESOS_TASK_SPAWN_AND_WAIT( (ESOS_TASK_HANDLE)&__stChildTaskTx, __esos_OutUint16AsHexString, (u16_out) )
+
+
+/**
+* Create, spawn and wait on a child task to put 2 bytes (uint16) to the ESOS "out" communications buffer as a human-readable
 * decimal string.  Results will look like "253"
 *
 * \note This call will block the current task until the data is absorbed by the ESOS communications subsystem
