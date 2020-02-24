@@ -52,13 +52,9 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
 }
 
 ESOS_CHILD_TASK(menu) {
-
-    static char proc_mode_buffer[8];    // buffer for holding the desired processing mode 
-    static char num_samples_buffer[8];  // buffer for holding the desired number of samples
-
     // neither of these will be used across yield or waits, so no need for static(-ness)
-    char proc_mode;
-    char num_samples;
+    static char proc_mode;
+    static char num_samples;
 
     ESOS_TASK_BEGIN();
     ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
@@ -75,13 +71,8 @@ ESOS_CHILD_TASK(menu) {
     ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();      // let everyone else know we are done with the out stream
 
     ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();      // wait until we can grab the input stream
-    ESOS_TASK_WAIT_ON_GET_STRING(proc_mode_buffer);     // write the user's input to the aforementioned buffer
+    ESOS_TASK_WAIT_ON_GET_UINT8(proc_mode);     // write the user's input to the aforementioned buffer
     ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();       // let everyone else know we are done with the in stream
-
-    // do the above process, but for output (so the user can see what they typed)
-    ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
-    ESOS_TASK_WAIT_ON_SEND_STRING(proc_mode_buffer);
-    ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 
     // start the second part of the menu (largely same as above)
     ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
@@ -99,17 +90,8 @@ ESOS_CHILD_TASK(menu) {
     ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 
     ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();
-    ESOS_TASK_WAIT_ON_GET_STRING(num_samples_buffer);
+    ESOS_TASK_WAIT_ON_GET_UINT8(num_samples);
     ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();
-
-    ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
-    ESOS_TASK_WAIT_ON_SEND_STRING(num_samples_buffer);
-    ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
-
-    // we only need the first character of each buffer, so doing this now
-    // will save me a lot of typing
-    proc_mode = proc_mode_buffer[0];
-    num_samples = num_samples_buffer[0];
 
     // assign the appropriate sensor_processing_mode based on user input
     // in the order defined in esos_sensor.h
