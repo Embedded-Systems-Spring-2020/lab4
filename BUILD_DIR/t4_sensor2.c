@@ -31,6 +31,8 @@
 static esos_sensor_process_t sensor_processing_mode;
 
 char buffer[30];
+char proc_mode[8];
+char num_samples[8];
 BOOL b_keepLooping = FALSE;
 
 ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of data
@@ -52,9 +54,6 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
 }
 
 ESOS_CHILD_TASK(menu) {
-    static uint8_t proc_mode = 0x00;
-    static uint8_t num_samples = 0x00;
-
     ESOS_TASK_BEGIN();
     for (;;) {
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
@@ -71,7 +70,7 @@ ESOS_CHILD_TASK(menu) {
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();      // let everyone else know we are done with the out stream
 
         ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();      // wait until we can grab the input stream
-        ESOS_TASK_WAIT_ON_GET_UINT8(proc_mode);     // write the user's input to the aforementioned buffer
+        ESOS_TASK_WAIT_ON_GET_STRING(proc_mode);     // write the user's input to the aforementioned buffer
         ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();       // let everyone else know we are done with the in stream
 
         // start the second part of the menu (largely same as above)
@@ -90,41 +89,41 @@ ESOS_CHILD_TASK(menu) {
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 
         ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();
-        ESOS_TASK_WAIT_ON_GET_UINT8(num_samples);
+        ESOS_TASK_WAIT_ON_GET_STRING(num_samples);
         ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();
 
         // assign the appropriate sensor_processing_mode based on user input
         // in the order defined in esos_sensor.h
         sensor_processing_mode = 
-                proc_mode == ONESHOT && num_samples == SAMPLES_ONESHOT ? ESOS_SENSOR_ONE_SHOT
+                proc_mode[0] == ONESHOT && num_samples[0] == SAMPLES_ONESHOT ? ESOS_SENSOR_ONE_SHOT
 
-            :   proc_mode == AVG && num_samples == SAMPLES2 ? ESOS_SENSOR_AVG2
-            :   proc_mode == AVG && num_samples == SAMPLES4 ? ESOS_SENSOR_AVG4
-            :   proc_mode == AVG && num_samples == SAMPLES8 ? ESOS_SENSOR_AVG8
-            :   proc_mode == AVG && num_samples == SAMPLES16 ? ESOS_SENSOR_AVG16
-            :   proc_mode == AVG && num_samples == SAMPLES32 ? ESOS_SENSOR_AVG32
-            :   proc_mode == AVG && num_samples == SAMPLES64 ? ESOS_SENSOR_AVG64
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES2 ? ESOS_SENSOR_AVG2
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES4 ? ESOS_SENSOR_AVG4
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES8 ? ESOS_SENSOR_AVG8
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES16 ? ESOS_SENSOR_AVG16
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES32 ? ESOS_SENSOR_AVG32
+            :   proc_mode[0] == AVG && num_samples[0] == SAMPLES64 ? ESOS_SENSOR_AVG64
             
-            :   proc_mode == MIN && num_samples == SAMPLES2 ? ESOS_SENSOR_MIN2
-            :   proc_mode == MIN && num_samples == SAMPLES4 ? ESOS_SENSOR_MIN4
-            :   proc_mode == MIN && num_samples == SAMPLES8 ? ESOS_SENSOR_MIN8
-            :   proc_mode == MIN && num_samples == SAMPLES16 ? ESOS_SENSOR_MIN16
-            :   proc_mode == MIN && num_samples == SAMPLES32 ? ESOS_SENSOR_MIN32
-            :   proc_mode == MIN && num_samples == SAMPLES64 ? ESOS_SENSOR_MIN16
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES2 ? ESOS_SENSOR_MIN2
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES4 ? ESOS_SENSOR_MIN4
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES8 ? ESOS_SENSOR_MIN8
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES16 ? ESOS_SENSOR_MIN16
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES32 ? ESOS_SENSOR_MIN32
+            :   proc_mode[0] == MIN && num_samples[0] == SAMPLES64 ? ESOS_SENSOR_MIN16
 
-            :   proc_mode == MAX && num_samples == SAMPLES2 ? ESOS_SENSOR_MAX2
-            :   proc_mode == MAX && num_samples == SAMPLES4 ? ESOS_SENSOR_MAX4
-            :   proc_mode == MAX && num_samples == SAMPLES8 ? ESOS_SENSOR_MAX8
-            :   proc_mode == MAX && num_samples == SAMPLES16 ? ESOS_SENSOR_MAX16
-            :   proc_mode == MAX && num_samples == SAMPLES32 ? ESOS_SENSOR_MAX32
-            :   proc_mode == MAX && num_samples == SAMPLES64 ? ESOS_SENSOR_MAX16
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES2 ? ESOS_SENSOR_MAX2
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES4 ? ESOS_SENSOR_MAX4
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES8 ? ESOS_SENSOR_MAX8
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES16 ? ESOS_SENSOR_MAX16
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES32 ? ESOS_SENSOR_MAX32
+            :   proc_mode[0] == MAX && num_samples[0] == SAMPLES64 ? ESOS_SENSOR_MAX16
 
-            :   proc_mode == MEDIAN && num_samples == SAMPLES2 ? ESOS_SENSOR_MEDIAN2
-            :   proc_mode == MEDIAN && num_samples == SAMPLES4 ? ESOS_SENSOR_MEDIAN4
-            :   proc_mode == MEDIAN && num_samples == SAMPLES8 ? ESOS_SENSOR_MEDIAN8
-            :   proc_mode == MEDIAN && num_samples == SAMPLES16 ? ESOS_SENSOR_MEDIAN16
-            :   proc_mode == MEDIAN && num_samples == SAMPLES32 ? ESOS_SENSOR_MEDIAN32
-            :   proc_mode == MEDIAN && num_samples == SAMPLES64 ? ESOS_SENSOR_MEDIAN16
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES2 ? ESOS_SENSOR_MEDIAN2
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES4 ? ESOS_SENSOR_MEDIAN4
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES8 ? ESOS_SENSOR_MEDIAN8
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES16 ? ESOS_SENSOR_MEDIAN16
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES32 ? ESOS_SENSOR_MEDIAN32
+            :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES64 ? ESOS_SENSOR_MEDIAN16
             :   0x00;
     }
     ESOS_TASK_END();
