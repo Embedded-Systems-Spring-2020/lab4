@@ -38,6 +38,9 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
 	static uint8_t i;
 	static uint8_t j;
 	ESOS_TASK_BEGIN();
+	 //wait for UART availability to send output to Bully Bootloader
+    ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
+    ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING(u16_num2graph); //Bam! new 16 bit hex send 
 	ESOS_TASK_WAIT_ON_SEND_STRING("   |");     //draws a 20 '_' long line with a moving '|' 
 	u8_barGraph_value = u16_num2graph / 50;    //max output 2^10 ~= 1000; /50 gives increments of 20
 	for (i=0; i<u8_barGraph_value; i++){
@@ -48,6 +51,8 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
 			ESOS_TASK_WAIT_ON_SEND_STRING("_");
 	}
 	ESOS_TASK_WAIT_ON_SEND_STRING("|\n");
+	ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
+    ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 	ESOS_TASK_END();
 }
 
@@ -138,7 +143,7 @@ ESOS_USER_TASK(loop) {
     for (;;) {     //same as while(true)
 
         ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed() || \
-							esos_uiF14_isSW3Pressed());  //on any switch, start the DO loop
+							esos_uiF14_isSW3Pressed());  //on any switch, start the sample DO loop
         if (esos_uiF14_isSW2Pressed()){
             b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
         }
@@ -153,23 +158,15 @@ ESOS_USER_TASK(loop) {
         ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Released() && esos_uiF14_isSW2Released());  /*wait for the release so
         sw1 can exit the loop when pressed again. The loop is fast enough to go around and sense sw1 still pressed
         and begin again*/
-        do{                    //claim the ADC, setup for CH2(potentiometer) and 3V3 for upper Vref
+        do{         //claim the ADC, setup for CH2(potentiometer) and 3V3 for upper Vref
             ESOS_TASK_WAIT_ON_AVAILABLE_SENSOR(ESOS_SENSOR_CH02, ESOS_SENSOR_VREF_3V3);
 
             //do single read of ADC
             ESOS_TASK_WAIT_SENSOR_READ(u16_data, sensor_processing_mode, ESOS_SENSOR_FORMAT_BITS);
-
-            //wait for UART availability to send output to Bully Bootloader
-            ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
-            
-            ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING(u16_data); //extra zeros but acceptable
-            
+            //ouput the data to the screen
             ESOS_ALLOCATE_CHILD_TASK(th_child_bar_graph);
             ESOS_TASK_SPAWN_AND_WAIT(th_child_bar_graph, barGraph_child, u16_data);
-            
-            ESOS_TASK_WAIT_ON_SEND_STRING("\n");
-            ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
-            ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
+                        
             ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  /*this is half of the 1 second delay between samples
             the following sw presses could be missed during the full second so we split the delay into 2 parts*/
             if (esos_uiF14_isSW1Pressed()){  //sw1 will stop the sw2 initiated continous looping
