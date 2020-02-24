@@ -52,9 +52,8 @@ ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of da
 }
 
 ESOS_CHILD_TASK(menu) {
-    // neither of these will be used across yield or waits, so no need for static(-ness)
     static uint8_t proc_mode = 0x00;
-    static uint8_t num_samples =  0x00;
+    static uint8_t num_samples = 0x00;
 
     ESOS_TASK_BEGIN();
     for (;;) {
