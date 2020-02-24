@@ -58,7 +58,7 @@ ESOS_CHILD_TASK(menu) {
     ESOS_TASK_BEGIN();
     ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
     // print a very pretty menu
-    ESOS_TASK_WAIT_ON_SEND_STRING("\n+===========================+");
+    ESOS_TASK_WAIT_ON_SEND_STRING("\n+===========================+\n");
     ESOS_TASK_WAIT_ON_SEND_STRING("|  Select Processing mode   |\n");
     ESOS_TASK_WAIT_ON_SEND_STRING("|   1. one-shot             |\n");
     ESOS_TASK_WAIT_ON_SEND_STRING("|   2. average              |\n");
