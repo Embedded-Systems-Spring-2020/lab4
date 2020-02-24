@@ -147,11 +147,11 @@ ESOS_CHILD_TASK(menu) {
 //    
 //}
 
+BOOL b_keepLooping = FALSE;
 
 ESOS_USER_TASK(loop) {
 
     static uint16_t u16_data;
-    BOOL b_keepLooping = FALSE;
 
     ESOS_TASK_BEGIN(); {
 
