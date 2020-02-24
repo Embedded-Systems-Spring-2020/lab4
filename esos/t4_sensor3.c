@@ -39,7 +39,7 @@ ESOS_CHILD_TASK(menu) {
     char num_samples;
 
     ESOS_TASK_BEGIN();
-    for (;;) {
+    for (;;) {                                                   // part
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
         // print a very pretty menu
         ESOS_TASK_WAIT_ON_SEND_STRING(
@@ -166,14 +166,14 @@ ESOS_USER_TASK(display_output)
                                              ESOS_SENSOR_FORMAT_VOLTAGE);
                     static uint32_t pu32_out;
                     static uint32_t temp32_ipart;
-                    static uint32_t temp32_fpart;
+                    static uint32_t temp32_dpart;
    
                     // pu16_out is still raw ADC sensor data meaning it is a number between 0 and 2^10. 
                     // So multiply it by the top voltage value which 3V and then divide by 1048.
                     pu32_out = (uint32_t)(3*pu16_out/1048) * 1000; // convert to not use decimals
                     pu32_out = (pu32_out - 424000) / 625; // millimillivolts to temp
                     temp32_ipart = pu32_out / 100; // convert to get the integer part
-                    temp32_fpart = pu32_out - temp32_ipart * 100; // subtract out the integer part to get the decimal
+                    temp32_dpart = pu32_out - temp32_ipart * 100; // subtract out the integer part to get the decimal
                                                                   // part
 
                     static uint32_t i = 0;
@@ -187,10 +187,10 @@ ESOS_USER_TASK(display_output)
                     convert_uint32_t_to_str(temp32_ipart, temp32_str, 12, 10);
                     ESOS_TASK_WAIT_ON_SEND_STRING(temp32_str);
                     ESOS_TASK_WAIT_ON_SEND_UINT8('.');
-                    if (temp32_fpart >= 0 && temp32_fpart <= 9) {
+                    if (temp32_dpart >= 0 && temp32_dpart <= 9) {
                         ESOS_TASK_WAIT_ON_SEND_UINT8('0');
                     }
-                    convert_uint32_t_to_str(temp32_fpart, temp32_str, 12, 10);
+                    convert_uint32_t_to_str(temp32_dpart, temp32_str, 12, 10);
                     ESOS_TASK_WAIT_ON_SEND_STRING(temp32_str);
                     ESOS_TASK_WAIT_ON_SEND_UINT8(' ');
                     ESOS_TASK_WAIT_ON_SEND_UINT8('C');
@@ -213,12 +213,12 @@ ESOS_USER_TASK(display_output)
 
                 static uint32_t pu32_out;
                 static uint32_t temp32_ipart;
-                static uint32_t temp32_fpart;
+                static uint32_t temp32_dpart;
 
                 pu32_out = (uint32_t)(3*pu16_out/1048) * 1000; // convert to not use decimals
                 pu32_out = (pu32_out - 424000) / 625; // millimillivolts to temp
                 temp32_ipart = pu32_out / 100; // convert to get the integer part
-                temp32_fpart = pu32_out - temp32_ipart * 100; // subtract out the integer part to get the decimal part
+                temp32_dpart = pu32_out - temp32_ipart * 100; // subtract out the integer part to get the decimal part
 
                 static uint32_t i = 0;
                 static char temp32_str[12];
@@ -231,8 +231,8 @@ ESOS_USER_TASK(display_output)
                 convert_uint32_t_to_str(temp32_ipart, temp32_str, 12, 10);
                 ESOS_TASK_WAIT_ON_SEND_STRING(temp32_str);
                 ESOS_TASK_WAIT_ON_SEND_UINT8('.');
-                convert_uint32_t_to_str(temp32_fpart, temp32_str, 12, 10);
-                if (temp32_fpart >= 0 && temp32_fpart <= 9) {
+                convert_uint32_t_to_str(temp32_dpart, temp32_str, 12, 10);
+                if (temp32_dpart >= 0 && temp32_dpart <= 9) {
                     ESOS_TASK_WAIT_ON_SEND_UINT8('0');
                 }
                 ESOS_TASK_WAIT_ON_SEND_STRING(temp32_str);
@@ -248,4 +248,160 @@ ESOS_USER_TASK(display_output)
     }
     ESOS_TASK_END();
 }
+ESOS_USER_TASK(adc_interface)
+{
+    ESOS_TASK_BEGIN();
+    while (TRUE) {
+        if (sw1_state != esos_uiF14_isSW1Pressed()) {
+            sw1_state = esos_uiF14_isSW1Pressed();
+            if (sw1_state) {
+                if (output_continuous == TRUE) {
+                    output_continuous = FALSE; // if continuous is running, stop it.
+                    output_enabled = FALSE;
+                } else {
+                    output_state = ESOS_SENSOR_ONE_SHOT; // otherwise print a single value out.
+                    output_enabled = TRUE;
+                }
+            }
+        }
+        if (sw2_state != esos_uiF14_isSW2Pressed()) {
+            sw2_state = esos_uiF14_isSW2Pressed();
+            if (sw2_state) {
+                if (output_continuous == TRUE) {
+                    output_continuous = FALSE; // if continuous is running, stop it.
+                    output_enabled = FALSE;
+                } else {
+                    output_state = ESOS_SENSOR_ONE_SHOT; // otherwise print a single value out.
+                    output_enabled = TRUE;
+                    output_continuous = TRUE;
+                }
+            }
+        }
+        if (sw3_state != esos_uiF14_isSW3Pressed()) {
+            sw3_state = esos_uiF14_isSW3Pressed();
+            if (sw3_state) {
+                if (output_continuous == TRUE) {
+                    output_continuous = FALSE; // if continuous is running, stop it.
+                    output_enabled = FALSE;
+                } else {
+                    // Print menu options
+                    ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_m_PROCESS_SETTINGS);
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_PROCESS_ONE);
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_PROCESS_AVG);
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_PROCESS_MIN);
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_PROCESS_MAX);
+                    ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_PROCESS_MED);
+                    ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 
+                    // Wait for selection
+                    ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();
+                    ESOS_TASK_WAIT_ON_GET_UINT8(u8_proctype);
+                    ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();
+
+                    if (u8_proctype != '1') {
+                        ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_m_SAMPLE_SETTINGS);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_2);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_4);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_8);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_16);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_32);
+                        ESOS_TASK_WAIT_ON_SEND_STRING(str_madc_SAMPLE_64);
+                        ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
+
+                        // Wait for selection
+                        ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();
+                        ESOS_TASK_WAIT_ON_GET_UINT8(u8_procnum);
+                        ESOS_TASK_SIGNAL_AVAILABLE_IN_COMM();
+                    }
+
+                    // Set processing state based on selection
+                    output_state =
+                        (u8_proctype == '2' && u8_procnum == '1') ?
+                            ESOS_SENSOR_AVG2 :
+                            (u8_proctype == '2' && u8_procnum == '2') ?
+                            ESOS_SENSOR_AVG4 :
+                            (u8_proctype == '2' && u8_procnum == '3') ?
+                            ESOS_SENSOR_AVG8 :
+                            (u8_proctype == '2' && u8_procnum == '4') ?
+                            ESOS_SENSOR_AVG16 :
+                            (u8_proctype == '2' && u8_procnum == '5') ?
+                            ESOS_SENSOR_AVG32 :
+                            (u8_proctype == '2' && u8_procnum == '6') ?
+                            ESOS_SENSOR_AVG64 :
+                            (u8_proctype == '3' && u8_procnum == '1') ?
+                            ESOS_SENSOR_AVG2 :
+                            (u8_proctype == '3' && u8_procnum == '2') ?
+                            ESOS_SENSOR_AVG4 :
+                            (u8_proctype == '3' && u8_procnum == '3') ?
+                            ESOS_SENSOR_AVG8 :
+                            (u8_proctype == '3' && u8_procnum == '4') ?
+                            ESOS_SENSOR_AVG16 :
+                            (u8_proctype == '3' && u8_procnum == '5') ?
+                            ESOS_SENSOR_AVG32 :
+                            (u8_proctype == '3' && u8_procnum == '6') ?
+                            ESOS_SENSOR_AVG64 :
+                            (u8_proctype == '4' && u8_procnum == '1') ?
+                            ESOS_SENSOR_AVG2 :
+                            (u8_proctype == '4' && u8_procnum == '2') ?
+                            ESOS_SENSOR_AVG4 :
+                            (u8_proctype == '4' && u8_procnum == '3') ?
+                            ESOS_SENSOR_AVG8 :
+                            (u8_proctype == '4' && u8_procnum == '4') ?
+                            ESOS_SENSOR_AVG16 :
+                            (u8_proctype == '4' && u8_procnum == '5') ?
+                            ESOS_SENSOR_AVG32 :
+                            (u8_proctype == '4' && u8_procnum == '6') ?
+                            ESOS_SENSOR_AVG64 :
+                            (u8_proctype == '5' && u8_procnum == '1') ?
+                            ESOS_SENSOR_AVG2 :
+                            (u8_proctype == '5' && u8_procnum == '2') ?
+                            ESOS_SENSOR_AVG4 :
+                            (u8_proctype == '5' && u8_procnum == '3') ?
+                            ESOS_SENSOR_AVG8 :
+                            (u8_proctype == '5' && u8_procnum == '4') ?
+                            ESOS_SENSOR_AVG16 :
+                            (u8_proctype == '5' && u8_procnum == '5') ?
+                            ESOS_SENSOR_AVG32 :
+                            (u8_proctype == '5' && u8_procnum == '6') ?
+                            ESOS_SENSOR_AVG64 :
+                            (u8_proctype == '6' && u8_procnum == '1') ?
+                            ESOS_SENSOR_AVG2 :
+                            (u8_proctype == '6' && u8_procnum == '2') ?
+                            ESOS_SENSOR_AVG4 :
+                            (u8_proctype == '6' && u8_procnum == '3') ?
+                            ESOS_SENSOR_AVG8 :
+                            (u8_proctype == '6' && u8_procnum == '4') ?
+                            ESOS_SENSOR_AVG16 :
+                            (u8_proctype == '6' && u8_procnum == '5') ?
+                            ESOS_SENSOR_AVG32 :
+                            (u8_proctype == '6' && u8_procnum == '6') ? ESOS_SENSOR_AVG64 : ESOS_SENSOR_ONE_SHOT;
+
+                    output_enabled = TRUE;
+                } // end if continuous
+            } // end if sw3 true
+        } // end if sw3pressed
+
+        ESOS_TASK_YIELD();
+    } // endwhile
+    ESOS_TASK_END();
+}
+
+void user_init()
+{
+    u8_procnum = '1';
+    u8_proctype = '1'; // doesn't matter
+    output_enabled = FALSE;
+    output_continuous = FALSE;
+    output_state = ESOS_SENSOR_ONE_SHOT;
+    sw1_state = FALSE;
+    sw2_state = FALSE;
+    sw3_state = FALSE;
+    esos_RegisterTimer(heartbeat, 250);
+
+    config_esos_uiF14();
+    esos_RegisterTask(adc_interface);
+    esos_RegisterTask(placeholderTask);
+    esos_RegisterTask(display_output);
+}
