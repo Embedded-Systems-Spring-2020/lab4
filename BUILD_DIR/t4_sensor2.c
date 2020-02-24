@@ -125,6 +125,8 @@ ESOS_CHILD_TASK(menu) {
             :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES32 ? ESOS_SENSOR_MEDIAN32
             :   proc_mode[0] == MEDIAN && num_samples[0] == SAMPLES64 ? ESOS_SENSOR_MEDIAN16
             :   0x00;
+
+        ESOS_TASK_YIELD();
     }
     ESOS_TASK_END();
 }
