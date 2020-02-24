@@ -133,7 +133,7 @@ ESOS_CHILD_TASK(menu) {
 ESOS_USER_TASK(loop) {
     static uint16_t u16_data;
 	static ESOS_TASK_HANDLE th_child_bar_graph; //declare storage for handle to child task
-    static ESOS_TASK_HANDLE th_child_menu
+    static ESOS_TASK_HANDLE th_child_menu;
     ESOS_TASK_BEGIN();
     for (;;) {     //same as while(true)
 
