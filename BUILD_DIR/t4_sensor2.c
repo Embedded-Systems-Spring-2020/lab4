@@ -150,7 +150,7 @@ ESOS_USER_TASK(loop) {
             ESOS_TASK_WAIT_ON_AVAILABLE_SENSOR(ESOS_SENSOR_CH02, ESOS_SENSOR_VREF_3V3);
 
             //do single read of ADC
-            ESOS_TASK_WAIT_SENSOR_QUICK_READ(u16_data);
+            ESOS_TASK_WAIT_SENSOR_READ(u16_data, sensor_processing_mode, ESOS_SENSOR_FORMAT_BITS);
 
             //wait for UART availability to send output to Bully Bootloader
             ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
