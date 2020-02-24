@@ -29,6 +29,9 @@
 
 // defined in "esos_sensor.h"
 static esos_sensor_process_t sensor_processing_mode;
+BOOL b_keepLooping;
+
+b_keepLooping = FALSE;
 
 ESOS_CHILD_TASK(menu) {
 
@@ -43,18 +46,15 @@ ESOS_CHILD_TASK(menu) {
     for (;;) {
        ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();     // wait until we can grab the output stream
         // print a very pretty menu
-        ESOS_TASK_WAIT_ON_SEND_STRING(
-          "\n"
-               "+===========================+\n\
-                |  Select Processing mode   |\n\
-                |   1. one-shot             |\n\
-                |   2. average              |\n\
-                |   3. minimum              |\n\
-                |   4. maximum              |\n\
-                |   5. median               |\n\
-                +===========================+\n\n\
-                >"
-        );
+        ESOS_TASK_WAIT_ON_SEND_STRING("\n+===========================+");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|  Select Processing mode   |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   1. one-shot             |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   2. average              |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   3. minimum              |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   4. maximum              |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   5. median               |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("+===========================+\n\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("> ");
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();      // let everyone else know we are done with the out stream
 
         ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();      // wait until we can grab the input stream
@@ -68,20 +68,17 @@ ESOS_CHILD_TASK(menu) {
 
         // start the second part of the menu (largely same as above)
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
-        ESOS_TASK_WAIT_ON_SEND_STRING(
-            "\n"  
-                "+===========================+\n\
-                |  Select Number of Samples |\n\
-                |   1. two                  |\n\
-                |   2. four                 |\n\
-                |   3. eight                |\n\
-                |   4. sixteen              |\n\
-                |   5. thirty-two           |\n\
-                |   6. sixty-four           |\n\
-                |   7. one-shot             |\n\
-                +===========================+\n\n\
-                >"
-        );
+        ESOS_TASK_WAIT_ON_SEND_STRING("\n+===========================+\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|  Select Number of Samples |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   1. two                  |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   2. four                 |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   3. eight                |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   4. sixteen              |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   5. thirty-two           |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   6. sixty-four           |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("|   7. one-shot             |\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("+===========================+\n\n");
+        ESOS_TASK_WAIT_ON_SEND_STRING("> ");
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 
         ESOS_TASK_WAIT_ON_AVAILABLE_IN_COMM();
@@ -135,10 +132,6 @@ ESOS_CHILD_TASK(menu) {
     }
     ESOS_TASK_END();
 }
-
-
-
-BOOL b_keepLooping = FALSE;
 
 ESOS_USER_TASK(loop) {
 
