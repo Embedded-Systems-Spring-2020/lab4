@@ -4,8 +4,10 @@
 #include <p33EP512GP806.h>
 #include <pic24_all.h>
 #include <esos_f14ui.h>
-
+#include <esos_comm.h>
 #include <esos_sensor.h>
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +16,32 @@
 
 char buffer[30];
 BOOL b_keepLooping = FALSE;
+
+ESOS_CHILD_TASK(barGraph_child, uint16_t u16_num2graph){  //visual display of data
+	static uint8_t u8_barGraph_value = 0;
+	static uint8_t i;
+	static uint8_t j;
+	ESOS_TASK_BEGIN();
+	ESOS_TASK_WAIT_ON_SEND_STRING("   |");     //draws a 20 '_' long line with a moving '|' 
+	u8_barGraph_value = u16_num2graph / 50;    //max output 2^10 ~= 1000; /50 gives increments of 20
+	for (i=0; i<u8_barGraph_value; i++){
+			ESOS_TASK_WAIT_ON_SEND_STRING("_");
+	}
+	ESOS_TASK_WAIT_ON_SEND_STRING("|");        //after appropriate '_'s this is the values line
+	for (j=0; j<(20-u8_barGraph_value); j++){  //finish the 20 '_'s
+			ESOS_TASK_WAIT_ON_SEND_STRING("_");
+	}
+	ESOS_TASK_WAIT_ON_SEND_STRING("|\n");
+	ESOS_TASK_END();
+}
+
 ESOS_USER_TASK(loop) {
     static uint16_t u16_data;
-
+	static ESOS_TASK_HANDLE th_child; //declare storage for handle to child task 
     ESOS_TASK_BEGIN();{
       for (;;) {     //same as while(true)
 
-        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  /on either switch, start the DO loop
+        ESOS_TASK_WAIT_UNTIL(esos_uiF14_isSW1Pressed() || esos_uiF14_isSW2Pressed());  //on either switch, start the DO loop
 		if (esos_uiF14_isSW2Pressed()){
 			b_keepLooping = TRUE;   //if sw2 then keep looping; checked at the bottom while statement
 		}
@@ -38,7 +59,12 @@ ESOS_USER_TASK(loop) {
         //wait for UART availability to send output to Bully Bootloader
         ESOS_TASK_WAIT_ON_AVAILABLE_OUT_COMM();
 		
-        sprintf(buffer, "%d\n", u16_data);
+        ESOS_TASK_WAIT_ON_SEND_UINT16_AS_HEX_STRING(u16_data); //extra zeros but acceptable
+		
+		ESOS_ALLOCATE_CHILD_TASK(th_child);
+		ESOS_TASK_SPAWN_AND_WAIT(th_child, barGraph_child, u16_data);
+		
+		ESOS_TASK_WAIT_ON_SEND_STRING("\n");
         ESOS_TASK_WAIT_ON_SEND_STRING(buffer); //wait for data in buffer to be sent and release UART
         ESOS_TASK_SIGNAL_AVAILABLE_OUT_COMM();
 		ESOS_TASK_WAIT_TICKS(LOOP_DELAY /2);  /*this is half of the 1 second delay between samples
@@ -63,6 +89,7 @@ ESOS_USER_TASK(loop) {
     ESOS_TASK_END();
 }
 
+
 void user_init(void){
     config_esos_uiF14();
 
@@ -70,4 +97,6 @@ void user_init(void){
     esos_uiF14_flashLED3(500);
 
     esos_RegisterTask(loop);
+	
+	
 }
