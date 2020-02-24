@@ -190,5 +190,7 @@ ESOS_USER_TASK(loop) {
 
 void user_init(void){
     config_esos_uiF14();
+	//configHeartbeatLED3
+	 esos_uiF14_flashLED3(500);
     esos_RegisterTask(loop);
 }
